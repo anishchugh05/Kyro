@@ -10,7 +10,7 @@ import { BottomTicker } from "@/components/panels/BottomTicker";
 import { DemoControls } from "@/components/panels/DemoControls";
 import { isDemoModeEnabled } from "@/lib/backend";
 
-export function RangerWorkspace() {
+export function RangerWorkspace({ initialRepo = "" }: { initialRepo?: string }) {
   const demoEnabled = isDemoModeEnabled();
 
   return (
@@ -30,7 +30,7 @@ export function RangerWorkspace() {
 
         {/* UI shell */}
         <div className="pointer-events-none absolute inset-0 z-20 flex flex-col">
-          <TopNav />
+          <TopNav initialRepo={initialRepo} />
 
           {/* Main panel row */}
           <div className="flex flex-1 items-start justify-between gap-4 px-4 pb-2 pt-24 md:pt-28 overflow-hidden min-h-0">

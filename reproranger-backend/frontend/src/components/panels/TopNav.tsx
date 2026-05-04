@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useRanger } from "@/state/RangerContext";
 import { useDemoRunner } from "@/state/useDemoRunner";
 import { useBackendRunner } from "@/hooks/useBackendRunner";
@@ -8,13 +8,26 @@ const BACKEND_URL = getBackendHttpUrl();
 const BACKEND_AVAILABLE = Boolean(BACKEND_URL);
 const DEMO_ENABLED = isDemoModeEnabled();
 
-export function TopNav() {
+export function TopNav({ initialRepo = "" }: { initialRepo?: string }) {
   const { repoUrl, phase } = useRanger();
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(initialRepo);
   const [formError, setFormError] = useState<string | null>(null);
   const [mode, setMode] = useState<"demo" | "live">(BACKEND_AVAILABLE ? "live" : "demo");
   const { run: runDemo } = useDemoRunner();
   const { run: runLive, isConnected, error } = useBackendRunner();
+
+  useEffect(() => {
+    if (!initialRepo) return;
+    const url = normalizeRepoUrl(initialRepo);
+    if (!url) return;
+    if (mode === "live" && BACKEND_AVAILABLE) {
+      void runLive(url);
+    } else if (mode === "demo" && DEMO_ENABLED) {
+      runDemo(url);
+    }
+    // Only fire once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();

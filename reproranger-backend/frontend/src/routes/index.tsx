@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RangerWorkspace } from "@/components/RangerWorkspace";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    repo: typeof search.repo === "string" ? search.repo : "",
+  }),
   head: () => ({
     meta: [
       { title: "Kyro — Autonomous AI Software Engineer" },
@@ -22,5 +25,6 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  return <RangerWorkspace />;
+  const { repo } = Route.useSearch();
+  return <RangerWorkspace initialRepo={repo} />;
 }
