@@ -1,7 +1,14 @@
+/**
+ * Kyro — Autonomous AI Code Repair Engine
+ * Copyright © 2026 Anish Chugh. All rights reserved.
+ * Version 1.0.0 | June 2026
+ * Unauthorized copying, modification, or distribution is strictly prohibited.
+ */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import type {
   ActivityLogEntry,
   AgentPhase,
+  CodebaseOverview,
   DiffFile,
   IssueContext,
   RangerState,
@@ -23,6 +30,7 @@ interface RangerContextValue extends RangerState {
   setDiff: (diff: DiffFile | null) => void;
   setFocusedNodeId: (id: string | null) => void;
   setProgress: (p: number) => void;
+  setOverview: (overview: CodebaseOverview | null) => void;
   appendLog: (entry: Omit<ActivityLogEntry, "id"> & { id?: string }) => void;
   clearLogs: () => void;
   reset: () => void;
@@ -38,6 +46,7 @@ const initialState: RangerState = {
   logs: [],
   focusedNodeId: null,
   progress: 0,
+  overview: null,
 };
 
 const RangerContext = createContext<RangerContextValue | null>(null);
@@ -59,6 +68,10 @@ export function RangerProvider({ children }: { children: ReactNode }) {
     [],
   );
   const setProgress = useCallback((progress: number) => setState((s) => ({ ...s, progress })), []);
+  const setOverview = useCallback(
+    (overview: CodebaseOverview | null) => setState((s) => ({ ...s, overview })),
+    [],
+  );
   const appendLog = useCallback<RangerContextValue["appendLog"]>((entry) => {
     setState((s) => ({
       ...s,
@@ -69,6 +82,7 @@ export function RangerProvider({ children }: { children: ReactNode }) {
           timestamp: entry.timestamp ?? new Date().toISOString(),
           level: entry.level,
           message: entry.message,
+          provider: entry.provider,
         },
       ].slice(-200),
     }));
@@ -87,6 +101,7 @@ export function RangerProvider({ children }: { children: ReactNode }) {
       setDiff,
       setFocusedNodeId,
       setProgress,
+      setOverview,
       appendLog,
       clearLogs,
       reset,
@@ -101,6 +116,7 @@ export function RangerProvider({ children }: { children: ReactNode }) {
       setDiff,
       setFocusedNodeId,
       setProgress,
+      setOverview,
       appendLog,
       clearLogs,
       reset,

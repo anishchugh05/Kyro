@@ -1,4 +1,9 @@
 """
+Kyro — Autonomous AI Code Repair Engine
+Copyright © 2026 Anish Chugh. All rights reserved.
+Version 1.0.0 | June 2026
+Unauthorized copying, modification, or distribution is strictly prohibited.
+
 File Ranker — TF-IDF-style keyword scoring to find the most relevant
 files for a given issue, without sending the entire repo to the LLM.
 

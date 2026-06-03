@@ -1,4 +1,9 @@
 """
+Kyro — Autonomous AI Code Repair Engine
+Copyright © 2026 Anish Chugh. All rights reserved.
+Version 1.0.0 | June 2026
+Unauthorized copying, modification, or distribution is strictly prohibited.
+
 GitHub PR Creator — uses the GitHub Git Data API to:
   1. Create a new branch from the repo's default branch
   2. Commit the fixed files atomically (single clean commit)

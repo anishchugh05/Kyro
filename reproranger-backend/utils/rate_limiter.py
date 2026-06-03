@@ -1,4 +1,11 @@
-"""Simple in-memory sliding-window rate limiter."""
+"""
+Kyro — Autonomous AI Code Repair Engine
+Copyright © 2026 Anish Chugh. All rights reserved.
+Version 1.0.0 | June 2026
+Unauthorized copying, modification, or distribution is strictly prohibited.
+
+Simple in-memory sliding-window rate limiter.
+"""
 import time
 from collections import defaultdict, deque
 

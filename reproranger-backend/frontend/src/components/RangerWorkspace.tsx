@@ -1,6 +1,13 @@
+/**
+ * Kyro — Autonomous AI Code Repair Engine
+ * Copyright © 2026 Anish Chugh. All rights reserved.
+ * Version 1.0.0 | June 2026
+ * Unauthorized copying, modification, or distribution is strictly prohibited.
+ */
 import { RangerProvider } from "@/state/RangerContext";
 import { RepoCityCanvas } from "@/canvas/RepoCityCanvas";
 import { TopNav } from "@/components/panels/TopNav";
+import { CodebaseOverviewPanel } from "@/components/panels/CodebaseOverviewPanel";
 import { IssuePanel } from "@/components/panels/IssuePanel";
 import { DiffPanel } from "@/components/panels/DiffPanel";
 import { ActivityPanel } from "@/components/panels/ActivityPanel";
@@ -36,6 +43,7 @@ export function RangerWorkspace({ initialRepo = "" }: { initialRepo?: string }) 
           <div className="flex flex-1 items-start justify-between gap-4 px-4 pb-2 pt-24 md:pt-28 overflow-hidden min-h-0">
             {/* Left column */}
             <div className="flex flex-col items-start gap-3 w-[22rem] shrink-0 max-h-full overflow-hidden">
+              <CodebaseOverviewPanel />
               <IssuePanel />
               <RepoPulsePanel />
               {demoEnabled && <DemoControls />}

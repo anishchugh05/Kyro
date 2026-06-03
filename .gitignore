@@ -1,4 +1,45 @@
+# ── Secrets & credentials ──────────────────────────────────────────────────────
 .env
 *.env
-.DS_Store
+!.env.example
+*.key
+*.pem
+
+# ── Databases & persistent data ────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+/data/
+reproranger-backend/data/
+
+# ── Python ─────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# ── Node / Frontend ─────────────────────────────────────────────────────────────
 node_modules/
+.next/
+.nuxt/
+*.tsbuildinfo
+
+# ── Build outputs ───────────────────────────────────────────────────────────────
+dist/
+build/
+
+# ── Logs ───────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS ─────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Cloudflare / Wrangler ──────────────────────────────────────────────────────
+.wrangler/

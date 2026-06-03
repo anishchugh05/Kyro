@@ -1,13 +1,21 @@
-"""SQLite-backed job store — tracks every analysis run."""
+"""
+Kyro — Autonomous AI Code Repair Engine
+Copyright © 2026 Anish Chugh. All rights reserved.
+Version 1.0.0 | June 2026
+Unauthorized copying, modification, or distribution is strictly prohibited.
+
+SQLite-backed job store — tracks every analysis run.
+"""
+import os
 import sqlite3
 import uuid
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass, field
 
-DB_PATH = Path("/tmp/reproranger/jobs.db")
+DB_PATH = Path(os.getenv("KYRO_DATA_DIR", "./data")) / "kyro_jobs.db"
 
 
 @dataclass
@@ -31,7 +39,10 @@ class JobStore:
         self._conn.row_factory = sqlite3.Row
         self._init_schema()
 
-    def _init_schema(self):
+    def _init_schema(self) -> None:
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA foreign_keys=ON")
+        self._conn.execute("PRAGMA synchronous=NORMAL")
         self._conn.execute("""
             CREATE TABLE IF NOT EXISTS jobs (
                 id          TEXT PRIMARY KEY,
@@ -50,7 +61,7 @@ class JobStore:
 
     def create_job(self, repo_url: str, issue_text: str) -> str:
         job_id = str(uuid.uuid4())
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         self._conn.execute(
             "INSERT INTO jobs VALUES (?,?,?,?,?,?,?,?,?,?)",
             (job_id, repo_url, issue_text, "pending", now, now, None, None, None, "{}"),
@@ -77,6 +88,12 @@ class JobStore:
             metadata=json.loads(row["metadata"] or "{}"),
         )
 
+    def count_successful_jobs(self) -> int:
+        row = self._conn.execute(
+            "SELECT COUNT(*) FROM jobs WHERE status = ?", ("success",)
+        ).fetchone()
+        return int(row[0]) if row else 0
+
     def update_job(self, job_id: str, **fields):
         allowed = {"status", "repo_path", "diff_output", "error", "metadata"}
         updates = {k: v for k, v in fields.items() if k in allowed}
@@ -84,7 +101,7 @@ class JobStore:
             return
         if "metadata" in updates:
             updates["metadata"] = json.dumps(updates["metadata"])
-        updates["updated_at"] = datetime.utcnow().isoformat()
+        updates["updated_at"] = datetime.now(timezone.utc).isoformat()
         set_clause = ", ".join(f"{k}=?" for k in updates)
         values = list(updates.values()) + [job_id]
         self._conn.execute(f"UPDATE jobs SET {set_clause} WHERE id=?", values)

@@ -1,3 +1,9 @@
+/**
+ * Kyro — Autonomous AI Code Repair Engine
+ * Copyright © 2026 Anish Chugh. All rights reserved.
+ * Version 1.0.0 | June 2026
+ * Unauthorized copying, modification, or distribution is strictly prohibited.
+ */
 import { createRouter, useRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 

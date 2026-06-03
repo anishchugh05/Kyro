@@ -1,3 +1,9 @@
+/**
+ * Kyro — Autonomous AI Code Repair Engine
+ * Copyright © 2026 Anish Chugh. All rights reserved.
+ * Version 1.0.0 | June 2026
+ * Unauthorized copying, modification, or distribution is strictly prohibited.
+ */
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Brain, Network, Activity, GitBranch, Zap, Eye } from "lucide-react";
@@ -120,10 +126,10 @@ export function WarpSection() {
 
           {/* Mini stat tiles */}
           {[
-            { icon: Activity, label: "patches/min", value: "37.4", color: "text-primary" },
-            { icon: GitBranch, label: "branches scanned", value: "1,294", color: "text-secondary" },
-            { icon: Zap, label: "avg latency", value: "82ms", color: "text-primary" },
-            { icon: Eye, label: "files in context", value: "12.4k", color: "text-secondary" },
+            { icon: Activity, label: "languages supported", value: "17", color: "text-primary" },
+            { icon: Brain, label: "tokens per repo", value: "~3.1k", color: "text-secondary" },
+            { icon: Zap, label: "cost per analysis", value: "$0.013", color: "text-primary" },
+            { icon: Eye, label: "ai pipeline stages", value: "5", color: "text-secondary" },
           ].map((s, i) => (
             <motion.div
               key={i}

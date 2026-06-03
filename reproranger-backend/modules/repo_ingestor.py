@@ -1,4 +1,9 @@
 """
+Kyro — Autonomous AI Code Repair Engine
+Copyright © 2026 Anish Chugh. All rights reserved.
+Version 1.0.0 | June 2026
+Unauthorized copying, modification, or distribution is strictly prohibited.
+
 Repo Ingestor — clones a public GitHub repo and builds:
   1. A condensed codebase map (file tree + first-200-line excerpts)
   2. A visual city layout (nodes + edges) for the frontend
@@ -10,7 +15,11 @@ import shutil
 import subprocess
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlparse
 from dataclasses import dataclass, field
+
+# ─── Allowed clone hosts — SSRF protection ────────────────────────────────────
+_ALLOWED_CLONE_HOSTS = {"github.com", "gitlab.com", "bitbucket.org"}
 
 REPO_BASE = Path("/tmp/reproranger/repos")
 
@@ -64,6 +73,48 @@ class RepoEdge:
     active: bool = False
 
 
+def validate_repo_url(url: str) -> bool:
+    """
+    Returns True only if the URL is a safe, allowlisted HTTPS repo URL.
+    Prevents SSRF, local file access, and shell-injection vectors.
+    """
+    try:
+        url = url.strip()
+        if re.search(r"[;&|`$<>()\\\x00-\x1f]", url):
+            return False
+        normalized = _normalize_github_url(url)
+        parsed = urlparse(normalized)
+        if parsed.scheme != "https":
+            return False
+        host = parsed.netloc.split(":")[0].lower()
+        if host not in _ALLOWED_CLONE_HOSTS:
+            return False
+        parts = [p for p in parsed.path.strip("/").replace(".git", "").split("/") if p]
+        if len(parts) < 2:
+            return False
+        return True
+    except Exception:
+        return False
+
+
+def safe_read_file(base_path: Path, rel_path: str) -> Optional[str]:
+    """
+    Read a file that must stay inside base_path.
+    Returns None on any error so callers can skip without inspecting content.
+    Prevents path traversal (../../etc/passwd), caps file size at 500 KB.
+    """
+    try:
+        full_path = (base_path / rel_path).resolve()
+        if not str(full_path).startswith(str(base_path.resolve())):
+            return None  # path traversal attempt
+        size = full_path.stat().st_size
+        if size > 500_000:
+            return None  # too large to analyze
+        return full_path.read_text(encoding="utf-8", errors="replace")
+    except (PermissionError, FileNotFoundError, OSError):
+        return None
+
+
 def _normalize_github_url(url: str) -> str:
     url = url.strip().rstrip("/")
     if url.startswith("github.com/"):
@@ -86,7 +137,6 @@ def clone_repo(repo_url: str, job_id: str) -> str:
     env = os.environ.copy()
     github_token = os.getenv("GITHUB_TOKEN")
     if github_token:
-        # Inject token for private repos
         normalized = normalized.replace(
             "https://github.com/", f"https://{github_token}@github.com/"
         )
@@ -146,9 +196,8 @@ def build_codebase_map(repo_path: str) -> CodebaseMap:
 
             if ext not in CODE_EXTENSIONS:
                 continue
-            try:
-                raw = fpath.read_text(encoding="utf-8", errors="replace")
-            except OSError:
+            raw = safe_read_file(root, rel_path)
+            if raw is None:
                 continue
 
             lines = raw.splitlines()
@@ -259,23 +308,55 @@ def build_city_layout(cmap: CodebaseMap) -> tuple[list[RepoNode], list[RepoEdge]
 
 
 def detect_test_command(repo_path: str) -> Optional[str]:
-    """Heuristically detect the test command for the repo."""
+    """
+    Detect the CI-safe test command for the repo.
+    Respects the actual test runner so framework-specific flags never bleed across.
+    """
+    import json as _json
+
     root = Path(repo_path)
+
     if (root / "package.json").exists():
         try:
-            import json
-            pkg = json.loads((root / "package.json").read_text())
-            if "test" in pkg.get("scripts", {}):
+            pkg = _json.loads((root / "package.json").read_text())
+            scripts = pkg.get("scripts", {})
+            test_script = scripts.get("test", "").lower()
+            all_deps = {
+                **pkg.get("dependencies", {}),
+                **pkg.get("devDependencies", {}),
+            }
+            uses_vitest = "vitest" in test_script or "vitest" in all_deps
+            uses_jest = (
+                "jest" in test_script
+                or "react-scripts" in test_script
+                or "jest" in all_deps
+                or "react-scripts" in all_deps
+            )
+            if uses_vitest:
+                return "npx vitest run"
+            if uses_jest:
                 return "npm test -- --watchAll=false --passWithNoTests"
+            if "test" in scripts:
+                # Unknown runner — run as-is without extra flags that might break it
+                return "npm test"
         except Exception:
             pass
-        return "npm test -- --watchAll=false --passWithNoTests"
-    if (root / "pytest.ini").exists() or (root / "setup.py").exists() or (root / "pyproject.toml").exists():
+        return None  # Cannot safely determine runner — skip tests
+
+    if (
+        (root / "pytest.ini").exists()
+        or (root / "setup.cfg").exists()
+        or (root / "setup.py").exists()
+        or (root / "pyproject.toml").exists()
+    ):
         return "python -m pytest --tb=short -q"
+
     if (root / "go.mod").exists():
         return "go test ./..."
+
     if (root / "Cargo.toml").exists():
         return "cargo test"
+
     return None
 
 

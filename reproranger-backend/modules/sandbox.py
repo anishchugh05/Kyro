@@ -1,4 +1,9 @@
 """
+Kyro — Autonomous AI Code Repair Engine
+Copyright © 2026 Anish Chugh. All rights reserved.
+Version 1.0.0 | June 2026
+Unauthorized copying, modification, or distribution is strictly prohibited.
+
 Execution Sandbox — runs test suites in a restricted subprocess.
 
 Security properties:
@@ -9,6 +14,7 @@ Security properties:
 """
 import asyncio
 import os
+import shlex
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -16,6 +22,26 @@ from pathlib import Path
 
 MAX_OUTPUT_BYTES = 8_192
 DEFAULT_TIMEOUT = 60   # seconds
+
+# Allowlist: detect_test_command output → safe arg list (shell=True is never used).
+ALLOWED_TEST_COMMANDS: dict[str, list[str]] = {
+    # Jest / Create React App
+    "npm test -- --watchAll=false --passWithNoTests": [
+        "npm", "test", "--", "--watchAll=false", "--passWithNoTests",
+    ],
+    # Vitest — non-watch single run
+    "npx vitest run": ["npx", "vitest", "run"],
+    # Generic npm test (unknown runner — no extra flags)
+    "npm test": ["npm", "test"],
+    # Python
+    "python -m pytest --tb=short -q": ["python", "-m", "pytest", "--tb=short", "-q"],
+    # Go
+    "go test ./...": ["go", "test", "./..."],
+    # Rust
+    "cargo test": ["cargo", "test"],
+    # Bun
+    "bun test": ["bun", "test"],
+}
 
 
 @dataclass
@@ -49,10 +75,11 @@ def run_tests_sync(
     timeout: int = DEFAULT_TIMEOUT,
 ) -> TestResult:
     """Run test command synchronously — called from a thread."""
+    cmd_list = ALLOWED_TEST_COMMANDS.get(command) or shlex.split(command)
     try:
         proc = subprocess.run(
-            command,
-            shell=True,
+            cmd_list,
+            shell=False,
             cwd=repo_path,
             capture_output=True,
             timeout=timeout,
@@ -90,7 +117,7 @@ async def run_tests_async(
     timeout: int = DEFAULT_TIMEOUT,
 ) -> TestResult:
     """Async wrapper — runs in a thread so it doesn't block the event loop."""
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
         None, run_tests_sync, repo_path, command, timeout
     )
@@ -120,5 +147,5 @@ def install_dependencies_sync(repo_path: str, timeout: int = 120) -> tuple[bool,
 
 
 async def install_dependencies_async(repo_path: str, timeout: int = 120) -> tuple[bool, str]:
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, install_dependencies_sync, repo_path, timeout)

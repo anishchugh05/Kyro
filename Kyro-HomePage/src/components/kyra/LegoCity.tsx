@@ -1,3 +1,9 @@
+/**
+ * Kyro — Autonomous AI Code Repair Engine
+ * Copyright © 2026 Anish Chugh. All rights reserved.
+ * Version 1.0.0 | June 2026
+ * Unauthorized copying, modification, or distribution is strictly prohibited.
+ */
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
@@ -97,8 +103,8 @@ function Building({ block, pulse }: { block: Block; pulse: number }) {
     }
 
     const m = ref.current.material as THREE.MeshStandardMaterial;
-    const base = 0.9 + Math.sin(t * block.speed) * 0.35;
-    m.emissiveIntensity = base + pulse * 1.6;
+    const base = 0.85 + Math.sin(t * block.speed) * 0.25;
+    m.emissiveIntensity = base + pulse * 1.4;
   });
 
   return (
@@ -459,11 +465,11 @@ export function LegoCity({
       gl={{ antialias: true, alpha: true }}
     >
       <Suspense fallback={null}>
-        <color attach="background" args={["#020203"]} />
-        <fog attach="fog" args={["#020203", 12, 36]} />
-        <ambientLight intensity={0.2} />
-        <directionalLight position={[8, 14, 6]} intensity={1.2} color="#00F2FF" castShadow />
-        <directionalLight position={[-10, 8, -6]} intensity={0.7} color="#CCFF00" />
+        <color attach="background" args={["#020409"]} />
+        <fog attach="fog" args={["#020409", 16, 44]} />
+        <ambientLight intensity={0.28} color="#4060a0" />
+        <directionalLight position={[8, 14, 6]} intensity={1.1} color="#00F2FF" castShadow />
+        <directionalLight position={[-10, 8, -6]} intensity={0.55} color="#CCFF00" />
 
         <InfiniteFloor />
         <Particles />
@@ -482,9 +488,9 @@ export function LegoCity({
 
         <EffectComposer multisampling={0} enableNormalPass={false}>
           <Bloom
-            intensity={1.4}
-            luminanceThreshold={0.18}
-            luminanceSmoothing={0.25}
+            intensity={1.0}
+            luminanceThreshold={0.25}
+            luminanceSmoothing={0.3}
             mipmapBlur
           />
           <ChromaticAberration
@@ -494,7 +500,7 @@ export function LegoCity({
             blendFunction={BlendFunction.NORMAL}
           />
           <Noise opacity={0.045} blendFunction={BlendFunction.OVERLAY} />
-          <Vignette eskil={false} offset={0.18} darkness={0.85} />
+          <Vignette eskil={false} offset={0.25} darkness={0.55} />
         </EffectComposer>
       </Suspense>
     </Canvas>

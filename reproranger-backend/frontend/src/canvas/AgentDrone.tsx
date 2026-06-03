@@ -1,3 +1,9 @@
+/**
+ * Kyro — Autonomous AI Code Repair Engine
+ * Copyright © 2026 Anish Chugh. All rights reserved.
+ * Version 1.0.0 | June 2026
+ * Unauthorized copying, modification, or distribution is strictly prohibited.
+ */
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -33,8 +39,11 @@ export function AgentDrone({ phase, nodes, focusedNodeId }: AgentDroneProps) {
       const tz = target.z * 1.6;
       const ty = (target.height ?? 3) * 0.55 + 1.2;
       desired = new THREE.Vector3(tx, ty + Math.sin(t * 2) * 0.1, tz);
-    } else if (phase === "exploring" || phase === "complete") {
-      // Lazy orbit
+    } else if (phase === "complete") {
+      // Mission done — shoot straight up and out of the scene
+      desired = new THREE.Vector3(0, 24, 0);
+    } else if (phase === "exploring") {
+      // Lazy orbit while scanning
       const r = 6;
       desired = new THREE.Vector3(
         Math.cos(t * 0.4) * r,
@@ -46,7 +55,9 @@ export function AgentDrone({ phase, nodes, focusedNodeId }: AgentDroneProps) {
       desired = new THREE.Vector3(0, 4 + Math.sin(t) * 0.3, 0);
     }
 
-    current.current.lerp(desired, Math.min(1, dt * 2.2));
+    // Use a faster lerp when completing so the ascent feels like a satisfying departure
+    const lerpSpeed = phase === "complete" ? dt * 5.0 : dt * 2.2;
+    current.current.lerp(desired, Math.min(1, lerpSpeed));
     group.current.position.copy(current.current);
     group.current.rotation.y += dt * 0.6;
   });

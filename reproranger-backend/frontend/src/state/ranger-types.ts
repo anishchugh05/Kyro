@@ -1,4 +1,9 @@
 /**
+ * Kyro — Autonomous AI Code Repair Engine
+ * Copyright © 2026 Anish Chugh. All rights reserved.
+ * Version 1.0.0 | June 2026
+ * Unauthorized copying, modification, or distribution is strictly prohibited.
+ *
  * Shared types for the Kyro frontend.
  * The backend will populate these — keep all fields optional/agnostic
  * so partial payloads render gracefully.
@@ -65,6 +70,13 @@ export interface ActivityLogEntry {
   timestamp?: string; // ISO
   level: LogLevel;
   message: string;
+  /** Which AI provider produced this event, e.g. "gemini" | "claude" | "openai" | "python" */
+  provider?: string;
+}
+
+export interface CodebaseOverview {
+  text: string;
+  stats: { files: number; lines: number };
 }
 
 export interface RangerState {
@@ -79,4 +91,6 @@ export interface RangerState {
   focusedNodeId: string | null;
   /** Optional progress 0..1 for the current phase. */
   progress: number;
+  /** Claude-generated codebase overview, set once indexing completes. */
+  overview: CodebaseOverview | null;
 }

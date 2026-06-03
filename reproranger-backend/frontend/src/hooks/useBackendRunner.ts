@@ -1,3 +1,9 @@
+/**
+ * Kyro — Autonomous AI Code Repair Engine
+ * Copyright © 2026 Anish Chugh. All rights reserved.
+ * Version 1.0.0 | June 2026
+ * Unauthorized copying, modification, or distribution is strictly prohibited.
+ */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRanger } from "@/state/RangerContext";
 import type { WsMessage } from "@/state/ws-types";
@@ -99,10 +105,29 @@ export function useBackendRunner(): BackendRunnerState {
             number: msg.data.number,
           });
           break;
+        case "overview":
+          ranger.setOverview({ text: msg.data.text, stats: msg.data.stats });
+          break;
         case "error":
           setError(msg.data.message);
           ranger.appendLog({ level: "error", message: msg.data.message });
           break;
+        case "stage": {
+          const stageLabel: Record<string, string> = {
+            detective: "🔍 Gemini Detective",
+            skeptic: "🤔 Claude Skeptic",
+            arbitration: "⚖️ Arbitrator (Python)",
+            fixer: "🔧 GPT-4o Fixer",
+            complete: "✅ Complete",
+          };
+          const label = stageLabel[msg.data.stage] ?? msg.data.stage;
+          ranger.appendLog({
+            level: "action",
+            message: `${label}: ${msg.data.summary}`,
+            provider: msg.data.provider,
+          });
+          break;
+        }
       }
     },
     [ranger],
