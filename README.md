@@ -114,6 +114,8 @@ Set `VITE_BACKEND_URL` and `VITE_WORKSPACE_URL` as environment variables in your
 
 ---
 
+Live at - https://kyro-homepage.anishchugh05.workers.dev/
+
 ## Author
 
 **Anish Chugh**  
