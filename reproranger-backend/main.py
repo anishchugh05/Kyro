@@ -62,7 +62,10 @@ app = FastAPI(
 # ─── Trusted hosts ─────────────────────────────────────────────────────────────
 _trusted_hosts = [
     h.strip()
-    for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    for h in os.getenv(
+        "ALLOWED_HOSTS",
+        "localhost,127.0.0.1,healthcheck.railway.app,*.railway.app"
+    ).split(",")
     if h.strip()
 ]
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=_trusted_hosts)
